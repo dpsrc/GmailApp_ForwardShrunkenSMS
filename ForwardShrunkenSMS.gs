@@ -86,7 +86,7 @@ function processSubject(subject) {
   //                                                   The '?' makes it non-greedy so it stops at the first number.
   // \s+                                              - Matches the space before the number.
   // ([\d\(\s\-\)]+)                                  - Group 2: Matches the phone number pattern.
-  const multiWordPattern = /(New text message from [\s\wÀ-ßà-ÿ¨¸²³¯¿ªº¥´]+?)\s+([\d\(\s\-\)]+)/;
+  const multiWordPattern = /(New text message from [\s\w\u0400-\u04FF]+?)\s+([\d\(\s\-\)]+)/;
 
   const match = subject.match(multiWordPattern);
 
