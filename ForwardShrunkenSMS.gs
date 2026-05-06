@@ -51,16 +51,10 @@ function processAndForwardEmails() {
 }
 
 function extractVoiceText(plainBodyText) {
-// Regex explanation:
-  // <https:\/\/voice\.google\.com>  - Matches the starting URL.
-  // \s*                             - Matches any leading whitespace/newlines.
+  // Regex explanation:
   // ([\s\S]*?)                      - Capturing Group: matches ANY character (including newlines) 
   //                                   non-greedily until the next part of the regex is found.
-  // \s*                             - Matches any trailing whitespace.
-  // (?: ... | ... )                 - Non-capturing group with two alternatives:
-  //    Option A: "YOUR ACCOUNT <https://voice.google.com>"
-  //    Option B: "To respond to this message, launch Google Voice"
-  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice|call back <https:\/\/voice.google.com|call back\s+<https:\/\/voice.google.com\/calls)/;
+  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice|call back\s+<https:\/\/voice.google.com\/calls)/;
   
   const match = plainBodyText.match(regex);
   
