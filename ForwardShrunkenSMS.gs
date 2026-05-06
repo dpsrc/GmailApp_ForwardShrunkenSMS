@@ -6,7 +6,7 @@ const labelOutputName = "put yours here";
 
 /**
  * Fully automated email forwarder with text replacement.
- * Features: Alias support, state management, and HTML/Plain body processing.
+ * Features: Alias support, state management, and Plain body processing.
  */
 function processAndForwardEmails() {
   const userProperties = PropertiesService.getUserProperties();
@@ -39,7 +39,7 @@ function processAndForwardEmails() {
           let smsText = extractVoiceText(message.getPlainBody());
 
           // Send the modified email
-          sendAndLabelEmail(targetEmail, processSubject(message.getSubject()).replace("New text message from", "SMS from"),
+          sendAndDeleteEmail(targetEmail, processSubject(message.getSubject()).replace("New text message from", "SMS from"),
               smsText, aliasEmail, labelOutputName);
         }
       });
@@ -102,7 +102,7 @@ function processSubject(subject) {
 /**
  * Sends an email and applies a label to the sent thread.
  */
-function sendAndLabelEmail(targetEmail, subject, body, aliasEmail, labelName) {
+function sendAndDeleteEmail(targetEmail, subject, body, aliasEmail, labelName) {
   // Send the email
   // Note: sendEmail does not return a message object in Apps Script
   GmailApp.sendEmail(targetEmail, subject, body, { 
@@ -129,7 +129,11 @@ function sendAndLabelEmail(targetEmail, subject, body, aliasEmail, labelName) {
     // Apply the label to the thread
     thread.addLabel(label);
     console.log("Label '" + labelName + "' applied to the sent thread.");
+
+    // Move the thread to Trash after labeling
+    thread.moveToTrash();
+    console.log("Thread moved to Trash.");
   } else {
-    console.log("Could not find the sent email to apply the label.");
+    console.log("Could not find the sent email to apply the label and move to trash.");
   }
 }
