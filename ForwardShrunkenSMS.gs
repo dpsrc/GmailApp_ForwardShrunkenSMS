@@ -60,7 +60,7 @@ function extractVoiceText(plainBodyText) {
   // (?: ... | ... )                 - Non-capturing group with two alternatives:
   //    Option A: "YOUR ACCOUNT <https://voice.google.com>"
   //    Option B: "To respond to this message, launch Google Voice"
-  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice)/;
+  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice|call back <https:\/\/voice.google.com|call back\s+<https:\/\/voice.google.com\/calls)/;
   
   const match = plainBodyText.match(regex);
   
@@ -81,21 +81,15 @@ function extractVoiceText(plainBodyText) {
  */
 function processSubject(subject) {
   // Regex explanation:
-  // (New text message from [\s\wÀ-ßà-ÿ¨¸²³¯¿ªº¥´]+?) - Group 1: Matches prefix and name.
-  //                                                   [\s\w...] allows spaces, letters, and Cyrillic.
-  //                                                   The '?' makes it non-greedy so it stops at the first number.
-  // \s+                                              - Matches the space before the number.
-  // ([\d\(\s\-\)]+)                                  - Group 2: Matches the phone number pattern.
-  const multiWordPattern = /(New text message from [\s\w\u0400-\u04FF]+?)\s+([\d\(\s\-\)]+)/;
+  // The '?' makes it non-greedy so it stops at the first number.
+  const multiWordPattern = /(New (?:text message|missed call) from [\s\w\u0400-\u04FF]+?)\s+([\d\(\s\-\)]+)/;
 
   const match = subject.match(multiWordPattern);
 
   if (match) {
-    // Returns the part with the name, trimming any trailing spaces
     return match[1].trim();
   }
 
-  // Returns original if no name+number pattern is found
   return subject;
 }
 
