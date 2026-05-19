@@ -16,7 +16,7 @@ function processAndForwardEmails() {
   
   // Search query: looking for emails in 'ToForward' label
   // Gmail search 'after' works with seconds since epoch
-  let query = "label:" + labelInputName + " from:('voice-noreply@google.com' OR 'txt.voice.google.com')";
+  let query = "label:" + labelInputName + " ( from:('voice-noreply@google.com' OR 'txt.voice.google.com') OR (subject:'Forward SMS From' 'https://forward-sms.com/') )";
   if (lastCheck) {
     console.log("Entered if (lastCheck)");
     const secondsSinceEpoch = Math.floor(lastCheck / 1000);
@@ -36,10 +36,15 @@ function processAndForwardEmails() {
         // Ensure we only process messages newer than our last stored timestamp
         if (!lastCheck || messageDate > lastCheck) {
           console.log("Entered if (!lastCheck || messageDate > lastCheck)");
-          let smsText = extractVoiceText(message.getPlainBody());
+
+          let plainBodyText = message.getPlainBody();
+
+          let smsText = extractVoiceText(plainBodyText);
+
+          smsText = extractForwardSMSText(plainBodyText);
 
           // Send the modified email
-          sendAndDeleteEmail(targetEmail, processSubject(message.getSubject()).replace("New text message from", "SMS from"),
+          sendAndDeleteEmail(targetEmail, processSubject(message.getSubject()).replace("New text message from", "SMS from").replace("Forward SMS From:", "SMS from"),
               smsText, aliasEmail, labelOutputName);
         }
       });
@@ -52,10 +57,30 @@ function processAndForwardEmails() {
 
 function extractVoiceText(plainBodyText) {
   // Regex explanation:
+  // \s*                             - Matches any leading whitespace/newlines.
   // ([\s\S]*?)                      - Capturing Group: matches ANY character (including newlines) 
   //                                   non-greedily until the next part of the regex is found.
-  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice|call back\s+<https:\/\/voice.google.com\/calls)/;
+  // \s*                             - Matches any trailing whitespace.
+  // (?: ... | ... | ...)                 - Non-capturing group with two alternatives
+  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice|To respond to this text message, reply to this email or visit Google Voice|call back\s+<https:\/\/voice.google.com\/calls)/;
   
+  const match = plainBodyText.match(regex);
+  
+  if (match && match[1]) {
+    const extracted = match[1];
+    console.log("Extracted text: " + extracted);
+    return extracted;
+  } else {
+    console.log("No match found.");
+    return plainBodyText;
+  }
+}
+
+function extractForwardSMSText(plainBodyText) {
+  const regex = /^(From:\s*\+\d[\s\S]*?(?:\u043f\u043f|\u0434\u043f|am|pm|AM|PM))\s*[\r\n]+You\s+are\s+receiving\s+this\s+email/;
+  
+  console.log("plainBodyText = " + plainBodyText);
+
   const match = plainBodyText.match(regex);
   
   if (match && match[1]) {
@@ -124,4 +149,6 @@ function sendAndDeleteEmail(targetEmail, subject, body, aliasEmail, labelName) {
   } else {
     console.log("Could not find the sent email to apply the label and move to trash.");
   }
+
+  Utilities.sleep(1500);
 }
