@@ -71,6 +71,11 @@ function extractVoiceText(plainBodyText) {
     console.log("Extracted text: " + extracted);
     return extracted;
   } else {
+    // Check if the voicemail is empty/non-recognized
+    if (/play message/i.test(plainBodyText)) {
+      console.log("No match found - No voicemail transcript.");
+      return "No voicemail transcript.";
+    }
     console.log("No match found.");
     return "No match found.";
   }
