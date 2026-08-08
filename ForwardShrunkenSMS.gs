@@ -41,7 +41,7 @@ function processAndForwardEmails() {
 
           let smsText = extractVoiceText(plainBodyText);
 
-          smsText = extractForwardSMSText(plainBodyText);
+          smsText = extractForwardSMSText(smsText);
 
           // Send the modified email
           sendAndDeleteEmail(targetEmail, processSubject(message.getSubject()).replace("New text message from", "SMS from").replace("Forward SMS From:", "SMS from"),
@@ -62,7 +62,7 @@ function extractVoiceText(plainBodyText) {
   //                                   non-greedily until the next part of the regex is found.
   // \s*                             - Matches any trailing whitespace.
   // (?: ... | ... | ...)                 - Non-capturing group with two alternatives
-  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice|To respond to this text message, reply to this email or visit Google Voice|call back\s+<https:\/\/voice.google.com\/calls)/;
+  const regex = /<https:\/\/voice\.google\.com>\s*([\s\S]*?)\s*(?:YOUR ACCOUNT <https:\/\/voice\.google\.com>|To respond to this message, launch Google Voice|To respond to this text message, reply to this email or visit Google Voice|call back\s+<https:\/\/voice\.google\.com\/calls|play message\s*<https:\/\/accounts\.google\.com\/AccountChooser)/;
   
   const match = plainBodyText.match(regex);
   
@@ -72,12 +72,12 @@ function extractVoiceText(plainBodyText) {
     return extracted;
   } else {
     console.log("No match found.");
-    return plainBodyText;
+    return "No match found.";
   }
 }
 
 function extractForwardSMSText(plainBodyText) {
-  const regex = /^(From:\s*\+\d[\s\S]*?(?:\u043f\u043f|\u0434\u043f|am|pm|AM|PM))\s*[\r\n]+You\s+are\s+receiving\s+this\s+email/;
+  const regex = /^(From:\s*\d[\s\S]*?(?:\u043f\u043f|\u0434\u043f|am|pm|AM|PM))\s*You are receiving this email/;
   
   console.log("plainBodyText = " + plainBodyText);
 
@@ -89,7 +89,7 @@ function extractForwardSMSText(plainBodyText) {
     return extracted;
   } else {
     console.log("No match found.");
-    return plainBodyText;
+    return plainBodyText.replace("You are receiving this email because you are added as a recipient at Forward SMS https://play.google.com/store/apps/details?id=com.development.forwardsms. To know more, please visit https://forward-sms.com", "");
   }
 }
 
